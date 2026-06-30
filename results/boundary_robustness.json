@@ -24,7 +24,7 @@
         "n_under": 10,
         "n_over": 17
       },
-      "Unhealthy (Sensitive)": {
+      "USG": {
         "n_errors": 19,
         "n_under": 15,
         "n_over": 4
@@ -83,9 +83,54 @@
     "ci95_high": 0.8751
   },
   "bootstrap_class": {
+    "class": "Hazardous",
     "n_boot": 1000,
     "point_estimate": 0.5578,
     "ci95_low": 0.4,
     "ci95_high": 0.6858
-  }
+  },
+  "method_d_boundary_noise_injection": [
+    {
+      "noise_level": 0.0,
+      "noise_std": 0.0,
+      "f1_overall": 0.9852,
+      "f1_boundary": 0.8473,
+      "f1_interior": 0.9991
+    },
+    {
+      "noise_level": 0.05,
+      "noise_std": 5.76,
+      "f1_overall": 0.8528,
+      "f1_boundary": 0.5895,
+      "f1_interior": 0.8813
+    },
+    {
+      "noise_level": 0.1,
+      "noise_std": 11.52,
+      "f1_overall": 0.7291,
+      "f1_boundary": 0.5263,
+      "f1_interior": 0.7386
+    },
+    {
+      "noise_level": 0.15,
+      "noise_std": 17.28,
+      "f1_overall": 0.6389,
+      "f1_boundary": 0.4773,
+      "f1_interior": 0.6417
+    },
+    {
+      "noise_level": 0.2,
+      "noise_std": 23.04,
+      "f1_overall": 0.5712,
+      "f1_boundary": 0.4399,
+      "f1_interior": 0.5704
+    },
+    {
+      "noise_level": 0.3,
+      "noise_std": 34.55,
+      "f1_overall": 0.473,
+      "f1_boundary": 0.3884,
+      "f1_interior": 0.4702
+    }
+  ]
 }
