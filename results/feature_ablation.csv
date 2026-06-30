@@ -1,0 +1,15 @@
+method,removed_feature,remaining,accuracy,macro_f1,accuracy_drop,f1_drop,experiment,feature,noise_level,noise_std
+leave_one_out,PM2.5,"PM10, temperature, humidity",0.796,0.7531,0.1976,0.2321,A_leave_one_out,,,
+leave_one_out,PM10,"PM2.5, temperature, humidity",0.9935,0.9854,0.0001,-0.0002,A_leave_one_out,,,
+leave_one_out,temperature,"PM2.5, PM10, humidity",0.9936,0.9856,0.0,-0.0004,A_leave_one_out,,,
+leave_one_out,humidity,"PM2.5, PM10, temperature",0.994,0.9868,-0.0004,-0.0016,A_leave_one_out,,,
+single_feature,,,0.9944,0.9858,,,B_single_feature,PM2.5,,
+single_feature,,,0.7524,0.6975,,,B_single_feature,PM10,,
+single_feature,,,0.3308,0.2201,,,B_single_feature,temperature,,
+single_feature,,,0.4122,0.1661,,,B_single_feature,humidity,,
+,,,0.9936,0.9852,,,C_noise_injection,,0.0,0.0
+,,,0.9173,0.8528,,,C_noise_injection,,0.05,5.76
+,,,0.8351,0.7291,,,C_noise_injection,,0.1,11.52
+,,,0.7677,0.6389,,,C_noise_injection,,0.15,17.28
+,,,0.7121,0.5712,,,C_noise_injection,,0.2,23.04
+,,,0.6132,0.473,,,C_noise_injection,,0.3,34.55

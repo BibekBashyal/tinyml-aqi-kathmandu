@@ -1,0 +1,4 @@
+model,val_accuracy,val_macro_f1,test_accuracy,test_macro_f1,train_time_sec
+Logistic Regression,0.9391,0.9172,0.96,0.9393,23.9
+Random Forest,1.0,1.0,1.0,1.0,10.9
+XGBoost,0.99,0.982,0.9936,0.9852,8.3

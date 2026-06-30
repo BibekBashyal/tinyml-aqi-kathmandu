@@ -1,0 +1,4 @@
+variant,accuracy,macro_f1,size_bytes,size_kb,platform,latency_mean_ms,latency_std_ms
+MLP float32 (Keras),0.98,0.9789,3928,3.84,Laptop,—,—
+MLP float32 (TFLite),0.98,0.9789,5824,5.69,Laptop (TFLite),0.001,0.0
+"MLP INT8 (TFLite, quantized)",0.9827,0.9725,5568,5.44,Laptop (TFLite INT8) → ESP32,0.001,0.0
