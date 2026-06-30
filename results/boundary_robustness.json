@@ -1,0 +1,10 @@
+{
+  "margin_ugm3": 2.0,
+  "n_total": 21282,
+  "n_boundary": 1615,
+  "pct_boundary": 7.59,
+  "overall_macro_f1": 0.9852,
+  "overall_accuracy": 0.9936,
+  "boundary_macro_f1": 0.8473,
+  "boundary_accuracy": 0.9263
+}
