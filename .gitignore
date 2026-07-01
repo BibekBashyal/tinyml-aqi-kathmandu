@@ -4,6 +4,13 @@ data/raw/*.xlsx
 data/raw/*.zip
 data/field/*.csv
 
+# OpenAQ Nepal validation outputs (regenerate with code/07_nepal_validation/)
+nepal_stations.csv
+kathmandu_stations.csv
+openaq_ktm_pm25.csv
+openaq_ktm_merged.csv
+openaq_ktm_aqi_labeled.csv
+
 # Processed data — too large for GitHub
 data/processed/*.csv
 
