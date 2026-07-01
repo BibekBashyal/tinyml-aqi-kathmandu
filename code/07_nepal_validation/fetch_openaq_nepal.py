@@ -88,7 +88,7 @@ def fetch_nepal_stations():
     results, page = [], 1
     while True:
         data = get("/locations", params={
-            "countries_id": 176,   # Nepal's OpenAQ country ID
+            "countries_id": 145,   # Nepal's OpenAQ country ID (code=NP)
             "limit": 100,
             "page": page,
         })
@@ -189,7 +189,8 @@ def fetch_measurements(sensor_id, date_from, date_to, param_name):
                 "value": m.get("value"),
             })
         meta = data.get("meta", {})
-        found = meta.get("found", len(records))
+        found_raw = meta.get("found", len(records))
+        found = int(str(found_raw).lstrip(">"))
         if len(records) >= found:
             break
         page += 1
