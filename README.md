@@ -68,7 +68,7 @@ tinyml-aqi-kathmandu/
 | SD card | MicroSD SPI module | CS=10, MOSI=11, SCK=12, MISO=14. **Needs 5 V** — the onboard AMS1117 regulator drops out on 3.3 V. |
 | Power monitor | INA219 | I²C 0x40, for the energy benchmark |
 
-**I²C dual-voltage note.** The ESP32-S3 drives SDA (GPIO8) and SCL (GPIO9) at 3.3 V, while the RTC and LCD modules are powered at 5 V and carry their own pull-up resistors. The bus currently works in this mixed configuration, but 5 V pull-ups exceed the ESP32-S3's 3.6 V absolute-maximum pin rating. Measure the idle SDA/SCL voltage on the ESP32 side before extended operation; if it reads near 5 V, either power the LCD backpack from 3.3 V or insert a BSS138 bidirectional level shifter and remove the backpack's pull-ups.
+**I²C dual-voltage note.** The ESP32-S3 drives SDA (GPIO8) and SCL (GPIO9) at 3.3 V, while the RTC and LCD modules are powered at 5 V and carry their own pull-up resistors. The bus currently works in this mixed configuration, but 5 V pull-ups exceed the ESP32-S3's 3.6 V absolute-maximum pin rating. The LCD panel does not produce readable contrast at 3.3 V (verified on the bench), so it must stay at 5 V. Measure the idle SDA/SCL voltage on the ESP32 side before extended operation; if it reads near 5 V, insert a BSS138 bidirectional level shifter between the ESP32 and the 5 V modules and remove the backpack's pull-up resistors.
 
 ---
 
