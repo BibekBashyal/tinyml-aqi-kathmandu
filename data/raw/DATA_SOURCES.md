@@ -31,14 +31,18 @@ Raw data files are NOT committed to this repository. Follow the instructions bel
 
 ---
 
-## 3. Kathmandu Valley Field Dataset (Primary validation — collected by author)
+## 3. Kathmandu Field Dataset (Primary validation — collected by author)
 
-- **Source:** Author-collected using ESP32 + PMS5003 devices
+- **Source:** Author-collected using three ESP32-S3 + PMS5003 + DHT22 nodes
 - **License:** CC BY-NC-SA 4.0 (to be released on Zenodo)
-- **Contents:** PM2.5, PM10, temperature, humidity, AQI class label — 3 Kathmandu locations
-- **Locations:** Koteshwor roadside, Dhulikhel residential, KU campus elevated
+- **Contents:** PM1.0, PM2.5, PM10, temperature, humidity, timestamp, AQI class label — 3 sites around a Kathmandu bus park
+- **Locations:**
+  - Site A — Bus Park core area (inside the terminal)
+  - Site B — Bus Park nearby (adjacent streets)
+  - Site C — Bus Park residential area
 - **Collection period:** October 2026
-- **Save as:** `data/field/device1_roadside_oct2026.csv`, `device2_residential_oct2026.csv`, `device3_campus_oct2026.csv`
+- **Save as:** `data/field/device1_buspark_core_oct2026.csv`, `device2_buspark_nearby_oct2026.csv`, `device3_buspark_residential_oct2026.csv`
+- **Site details:** see `docs/deployment_log.md`
 
 ---
 
