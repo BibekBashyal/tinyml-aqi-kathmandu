@@ -47,8 +47,9 @@ tinyml-aqi-kathmandu/
 │   ├── 06_analysis/         # AQI-boundary robustness analysis and figures
 │   └── 07_nepal_validation/ # OpenAQ Nepal fetch — India-to-Kathmandu sanity check
 ├── firmware/
-│   ├── data_logger/    # Stage 1: ESP32-S3 sensor node — bring-up and SD logging (PlatformIO)
-│   └── aqi_classifier/ # Stage 2: INT8 model as C array for on-device inference
+│   ├── bench_bringup/  # Bench test modes for each module, plus setup notes
+│   ├── data_logger/    # Stage 1: sensors, RTC timestamp, SD logging, LCD (PlatformIO)
+│   └── aqi_classifier/ # Stage 2: humidity correction, scaling, INT8 TFLite Micro inference, benchmark mode
 ├── models/             # scaler_params.json, training history (weights not committed)
 ├── results/            # Metrics CSVs and figures
 └── docs/               # Lab notebook, literature tracker, deployment log, AQI breakpoints
@@ -65,10 +66,11 @@ tinyml-aqi-kathmandu/
 | Temp/humidity | DHT22 | GPIO2, 3.3 V |
 | RTC | DS1307 Tiny RTC module | I²C 0x68, battery-backed, 5 V module |
 | Display | 16×2 character LCD with PCF8574 I²C backpack | I²C 0x27, 5 V panel |
+| Level shifter | BSS138 4-channel module | Joins the 3.3 V and 5 V I²C segments (SDA, SCL) |
 | SD card | MicroSD SPI module | CS=10, MOSI=11, SCK=12, MISO=14. **Needs 5 V** — the onboard AMS1117 regulator drops out on 3.3 V. |
 | Power monitor | INA219 | I²C 0x40, for the energy benchmark |
 
-**I²C dual-voltage note.** The ESP32-S3 drives SDA (GPIO8) and SCL (GPIO9) at 3.3 V, while the RTC and LCD modules are powered at 5 V and carry their own pull-up resistors. The bus currently works in this mixed configuration, but 5 V pull-ups exceed the ESP32-S3's 3.6 V absolute-maximum pin rating. The LCD panel does not produce readable contrast at 3.3 V (verified on the bench), so it must stay at 5 V. Measure the idle SDA/SCL voltage on the ESP32 side before extended operation; if it reads near 5 V, insert a BSS138 bidirectional level shifter between the ESP32 and the 5 V modules and remove the backpack's pull-up resistors.
+**I²C voltage design.** The ESP32-S3 GPIO is 3.3 V and not 5 V tolerant. Two modules must run at 5 V: the LCD glass is blank at 3.3 V, and the DS1307 disables its I²C interface below about 3.75 V when its coin cell is fitted. A BSS138 level shifter therefore joins a 3.3 V segment (ESP32-S3 GPIO8/GPIO9, INA219) to a 5 V segment (DS1307, LCD). Before connecting the board, check that SDA and SCL on the 3.3 V side idle at about 3.3 V.
 
 ---
 
@@ -86,7 +88,7 @@ pip install -r requirements.txt
 python code/01_data_prep/01_download_openmeteo.py
 ```
 
-Firmware is a PlatformIO project; open `firmware/data_logger/` in VS Code with the PlatformIO extension and run **Upload**. The board must be connected through its **UART** USB-C port, not the native USB port (see the comments in `platformio.ini`).
+Firmware is in two PlatformIO projects: `firmware/data_logger/` (stage 1) and `firmware/aqi_classifier/` (stage 2). Open one in VS Code with the PlatformIO extension and run **Upload**; see `firmware/README.md`. The board must be connected through its **UART** USB-C port, not the native USB port (see the comments in `platformio.ini`).
 
 ---
 
