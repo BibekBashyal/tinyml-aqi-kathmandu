@@ -1,0 +1,7 @@
+M=4352,87b9253c,a8efb66a
+BENCH start
+LATENCY cold: 0.2850 ms (first call, caches hold what ran before)
+LATENCY: 0.1798 +/- 0.0027 ms (n=100, min 0.1780, max 0.1860)
+RAM: tensor arena used 1040 of 10240 bytes; model 4352 bytes in flash; heap delta 200 bytes
+ENERGY: skipped, INA219 not on the bus
+BENCH done

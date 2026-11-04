@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-03 22:24:17",
+  "status": "complete",
+  "board": {
+    "model_bytes": 4352,
+    "model_crc32": "87b9253c",
+    "input_crc32": "a8efb66a"
+  },
+  "vectors_total": 15043,
+  "vectors_sent": 15043,
+  "timeouts": 0,
+  "bad_replies": 0,
+  "infer_errors": 0,
+  "parse_errors": 0,
+  "stale_replies_discarded": 0,
+  "serial_noise_lines": 2,
+  "replies_ok": 15043,
+  "coverage_pct": 100.0,
+  "class_agreement_pct": 100.0,
+  "disagreements": 0,
+  "rows_with_identical_probabilities": 15043,
+  "bit_identical": true,
+  "max_abs_prob_diff_in_1_256_steps": 0,
+  "latency_us_mean": 269.4,
+  "latency_us_std": 15.9,
+  "latency_us_p95": 287.0,
+  "latency_us_max": 320,
+  "field_rows": 13843,
+  "field_class_counts": {
+    "Moderate": 9427,
+    "USG": 4416
+  },
+  "public_sample": "balanced_200_per_class",
+  "public_rows": 1200,
+  "public_balanced_200_per_class_macro_f1_device": 0.9933,
+  "public_balanced_200_per_class_accuracy_device": 0.9933,
+  "public_balanced_200_per_class_macro_f1_laptop": 0.9933,
+  "public_balanced_200_per_class_accuracy_laptop": 0.9933
+}

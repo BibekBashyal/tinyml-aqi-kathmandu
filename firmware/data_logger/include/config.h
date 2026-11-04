@@ -32,6 +32,11 @@
 #define SD_CS_PIN    10
 #define SD_MOSI_PIN  11
 #define SD_SCK_PIN   12
+// 1 MHz SPI: the default 4 MHz fails over breadboard-length wires (bench 2026-10-30)
+#define SD_SPI_HZ 1000000
+// bench 2026-10-30: 0 = warn and log uptime-based timestamps when the DS1307 is absent,
+// 1 = halt at boot without the RTC (thesis deployment setting)
+#define RTC_REQUIRED 0
 #define SD_MISO_PIN  14
 
 // ---------------- Sampling ----------------
@@ -46,11 +51,16 @@
 #define RH_ALPHA  0.0f
 #define RH_BETA   1.0f
 
-// ---------------- Feature scaling (classifier stage only) ----------------
-// Copied from models/scaler_params.json in the repo (training-set statistics).
-// Order: PM2.5, PM10, temperature, humidity (same as training).
-#define SCALER_FROM_JSON  1
-static const float SCALER_MEAN[4] = {113.1067533325189f, 201.6154751793621f,
-                                     23.049795432214065f, 74.19816404944534f};
-static const float SCALER_STD[4]  = {115.17576765122364f, 176.9964349219321f,
-                                     7.144550002310301f,  19.39754306254128f};
+// ---------------- Classifier stage ----------------
+// Model input constants live in aqi_classifier/aqi_model.h, generated together with the model by
+// code/04_tinyml_model/requantize_int8.py, so they can never drift apart from it.
+// 1 = run the latency / RAM / energy protocol at boot and halt; 0 = normal operation
+// (the same protocol runs on demand with the serial command BENCH)
+#define BENCHMARK_MODE    0
+#define TFLM_ARENA_BYTES  (10 * 1024)   // tensor arena; the MLP uses ~2 KB of it
+// Stage 2 writes its own file: its 11-column rows must never land under the stage 1 header
+// in /aqilog.csv on the same card (code review 2026-11-03)
+#define CLS_LOG_FILE      "/aqicls.csv"
+// rows kept in RAM while the card is away: 1200 x 96 B = 1 h at 3 s, 115 KB of RAM
+#define SD_PENDING_ROWS   1200
+#define SD_ROW_BYTES      96

@@ -27,7 +27,6 @@ import json
 import time
 import logging
 import warnings
-import subprocess
 
 import numpy as np
 import pandas as pd
@@ -41,6 +40,10 @@ from sklearn.metrics import (
     classification_report, confusion_matrix
 )
 from sklearn.preprocessing import StandardScaler
+
+from tflite_export import (
+    convert_int8_per_tensor, deployment_input_params, export_int8_artifacts, fold_input_range, model_input,
+)
 
 warnings.filterwarnings("ignore")
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -107,6 +110,7 @@ def load_data():
     y_val   = val[TARGET].values.astype(np.int32)
     X_test  = test[FEATURES].values.astype(np.float32)
     y_test  = test[TARGET].values.astype(np.int32)
+    raw = {"train": X_train.copy(), "test": X_test.copy()}   # the INT8 model takes raw inputs (tflite_export.py)
 
     # Feature normalisation — fit on train, apply to all
     scaler  = StandardScaler()
@@ -128,7 +132,7 @@ def load_data():
     log.info(f"  Test  : {X_test.shape[0]:,} rows")
     log.info(f"  Scaler params saved → models/scaler_params.json")
 
-    return X_train, y_train, X_val, y_val, X_test, y_test, scaler
+    return X_train, y_train, X_val, y_val, X_test, y_test, scaler, raw
 
 # ── Step 1: Build and train MLP ───────────────────────────────────────────────
 def build_model():
@@ -228,33 +232,24 @@ def convert_float32(model):
     return tflite_model, size_bytes
 
 # ── Step 3: INT8 post-training quantization ───────────────────────────────────
-def quantize_int8(model, X_train):
+def quantize_int8(model, X_train, X_train_raw, scaler):
+    """INT8 for the ESP32: per-feature input range folded into dense_1, per-tensor FC weights,
+    calibration on the full training split. Why: see tflite_export.py (code review 2026-11-03)."""
     log.info("\n── Step 3: INT8 Post-Training Quantization ──────────")
 
-    def representative_dataset():
-        indices = np.random.choice(len(X_train), size=500, replace=False)
-        for idx in indices:
-            row = X_train[idx].reshape(1, -1).astype(np.float32)
-            yield [row]
-
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    converter.optimizations              = [tf.lite.Optimize.DEFAULT]
-    converter.representative_dataset     = representative_dataset
-    converter.target_spec.supported_ops  = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-    converter.inference_input_type       = tf.float32
-    converter.inference_output_type      = tf.float32
-
-    tflite_quant = converter.convert()
-
-    out_path = os.path.join(PATHS["models"], "mlp_int8.tflite")
-    with open(out_path, "wb") as f:
-        f.write(tflite_quant)
+    folded, centre, half_range = fold_input_range(model, X_train)
+    input_params = deployment_input_params(scaler.mean_, scaler.scale_, centre, half_range)
+    tflite_quant = convert_int8_per_tensor(folded, model_input(X_train_raw, *input_params))
+    # model, folded float model, input constants and C header always change together
+    written = export_int8_artifacts(os.getcwd(), folded, tflite_quant, *input_params, centre, half_range,
+                                    FEATURES, "train_mlp.py")
+    out_path = written["tflite"]
 
     size_bytes = len(tflite_quant)
     log.info(f"  INT8 quantized size: {size_bytes:,} bytes ({size_bytes/1024:.1f} KB)")
     log.info(f"  Saved → {out_path}")
 
-    return tflite_quant, size_bytes
+    return tflite_quant, size_bytes, input_params
 
 # ── Step 4: Evaluate all model variants ──────────────────────────────────────
 def run_tflite_inference(tflite_bytes, X):
@@ -279,7 +274,7 @@ def run_tflite_inference(tflite_bytes, X):
     return np.array(preds), np.array(latencies)
 
 def evaluate_all(model, tflite_f32, tflite_int8,
-                 X_test, y_test, size_f32, size_int8):
+                 X_test, y_test, size_f32, size_int8, X_test_int8):
     log.info("\n── Step 4: Evaluating All Model Variants ────────────")
 
     results = []
@@ -318,7 +313,7 @@ def evaluate_all(model, tflite_f32, tflite_int8,
              f"Latency: {np.mean(lat_f32):.3f} ± {np.std(lat_f32):.3f} ms")
 
     log.info("  Evaluating: TFLite INT8 (quantized)...")
-    y_pred_int8, lat_int8 = run_tflite_inference(tflite_int8, X_test)
+    y_pred_int8, lat_int8 = run_tflite_inference(tflite_int8, X_test_int8)
     acc_int8 = accuracy_score(y_test, y_pred_int8)
     f1_int8  = f1_score(y_test, y_pred_int8, average="macro", zero_division=0)
     f1_drop  = round(f1_f32 - f1_int8, 4)
@@ -357,55 +352,6 @@ def evaluate_all(model, tflite_f32, tflite_int8,
     return pd.DataFrame(results), y_pred_keras, y_pred_f32, y_pred_int8, f1_drop, size_reduction
 
 # ── Step 5: Export C array ────────────────────────────────────────────────────
-def export_c_array():
-    log.info("\n── Step 5: Export C Array for ESP32 ────────────────")
-
-    int8_path   = os.path.join(PATHS["models"], "mlp_int8.tflite")
-    header_path = os.path.join(PATHS["firmware"], "aqi_model.h")
-    os.makedirs(PATHS["firmware"], exist_ok=True)
-
-    try:
-        result = subprocess.run(
-            ["xxd", "-i", int8_path],
-            capture_output=True, text=True, check=True
-        )
-        c_array = result.stdout
-        c_array = c_array.replace(
-            "unsigned char mlp_int8_tflite[]",
-            "const unsigned char aqi_model[]"
-        ).replace(
-            "unsigned int mlp_int8_tflite_len",
-            "const unsigned int aqi_model_len"
-        )
-
-        header = f"""// aqi_model.h
-// Auto-generated by train_mlp.py
-// Project: TinyML-Based AQI Classification on ESP32
-// Author: Bibek Bashyal, Kathmandu University 2026
-//
-// Input features (in order, normalised using scaler_params.json):
-//   [0] PM2.5      [1] PM10      [2] temperature      [3] humidity
-// Output: 6-class softmax — Good / Moderate / USG / Unhealthy / Very Unhealthy / Hazardous
-
-#ifndef AQI_MODEL_H
-#define AQI_MODEL_H
-
-{c_array}
-
-#endif // AQI_MODEL_H
-"""
-        with open(header_path, "w") as f:
-            f.write(header)
-
-        log.info(f"  C array exported → {header_path}")
-        log.info(f"  Include in firmware: #include \"aqi_model.h\"")
-
-    except FileNotFoundError:
-        log.warning("  xxd not found — skipping C array export")
-        log.warning("  Run manually: xxd -i models/mlp_int8.tflite > firmware/aqi_classifier/aqi_model.h")
-    except Exception as e:
-        log.warning(f"  C array export failed: {e}")
-
 # ── Figures ───────────────────────────────────────────────────────────────────
 def plot_training_history(history):
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
@@ -533,16 +479,15 @@ def main():
     log.info(f"  TensorFlow version: {tf.__version__}")
     log.info("=" * 60)
 
-    X_train, y_train, X_val, y_val, X_test, y_test, scaler = load_data()
+    X_train, y_train, X_val, y_val, X_test, y_test, scaler, raw = load_data()
     model, history, train_time, epochs_run = train_model(X_train, y_train, X_val, y_val)
     tflite_f32, size_f32   = convert_float32(model)
-    tflite_int8, size_int8 = quantize_int8(model, X_train)
+    tflite_int8, size_int8, input_params = quantize_int8(model, X_train, raw["train"], scaler)
 
     results_df, y_pred_keras, y_pred_f32, y_pred_int8, f1_drop, size_reduction = \
         evaluate_all(model, tflite_f32, tflite_int8,
-                     X_test, y_test, size_f32, size_int8)
+                     X_test, y_test, size_f32, size_int8, model_input(raw["test"], *input_params))
 
-    export_c_array()
 
     results_df.to_csv(
         os.path.join(PATHS["results"], "tinyml_model_comparison.csv"),

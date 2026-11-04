@@ -24,9 +24,9 @@ Models are trained on the India CPCB + Open-Meteo merged dataset (inputs: PM2.5,
 | Logistic Regression | 0.9600 | 0.9393 | — |
 | XGBoost (best baseline) | 0.9936 | 0.9852 | 2.5 MB (not deployable) |
 | MLP float32 (TFLite) | 0.9800 | 0.9789 | 5.69 KB |
-| **MLP INT8 (TFLite, deployed)** | **0.9827** | **0.9725** | **5.44 KB** |
+| **MLP INT8 (TFLite, deployed, per-tensor)** | **0.9874** | **0.9873** | **4.25 KB** |
 
-The INT8 MLP keeps 98.7% of XGBoost's macro-F1 at roughly 1/460 of its size and is exported as a C array in `firmware/aqi_classifier/aqi_model.h`. Feature ablation and AQI-boundary robustness analyses are in `results/feature_ablation.csv` and `results/boundary_robustness.json`.
+The INT8 MLP matches XGBoost's macro-F1 (0.9873 vs 0.9852) at about 1/590 of its size and is exported, together with its input constants, as a C array in `firmware/aqi_classifier/aqi_model.h`. It is built by `code/04_tinyml_model/requantize_int8.py` with per-tensor weights, the only layout the ESP32's TensorFlow Lite Micro runs correctly, and a per-feature input range; the earlier per-channel model (0.9827 / 0.9725, 5.44 KB) and the reasons for the change are in `results/requantize_int8_report.json`. Feature ablation and AQI-boundary robustness analyses are in `results/feature_ablation.csv` and `results/boundary_robustness.json`.
 
 ---
 

@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-03 08:23:12",
+  "reason": "ESP32 TFLite Micro runs only per-tensor FULLY_CONNECTED; the per-channel model ran mis-scaled on the board. One shared int8 input scale also made INT8 macro-F1 depend on the calibration draw.",
+  "method": "per-feature input range folded into dense_1, per-tensor INT8 weights, calibration on the full training split",
+  "calibration_rows": 238836,
+  "float32_tflite": {
+    "accuracy": 0.98,
+    "macro_f1": 0.9789,
+    "per_class_f1": [
+      0.9965,
+      0.9883,
+      0.9612,
+      0.9862,
+      0.9693,
+      0.972
+    ],
+    "latency_mean_ms": 0.002,
+    "latency_std_ms": 0.001
+  },
+  "float32_tflite_validation": {
+    "accuracy": 0.981,
+    "macro_f1": 0.975,
+    "per_class_f1": [
+      0.9889,
+      0.9898,
+      0.9605,
+      0.9787,
+      0.9724,
+      0.96
+    ]
+  },
+  "int8_per_channel_old": {
+    "size_bytes": 5568,
+    "fc_scales": [
+      32,
+      16,
+      6
+    ],
+    "accuracy": 0.9827,
+    "macro_f1": 0.9725,
+    "per_class_f1": [
+      0.9733,
+      0.948,
+      0.9608,
+      0.9936,
+      0.9809,
+      0.9782
+    ],
+    "latency_mean_ms": 0.002,
+    "latency_std_ms": 0.001
+  },
+  "int8_per_tensor_new": {
+    "size_bytes": 4352,
+    "fc_scales": [
+      1,
+      1,
+      1
+    ],
+    "accuracy": 0.9874,
+    "macro_f1": 0.9873,
+    "per_class_f1": [
+      0.993,
+      0.9989,
+      0.9715,
+      0.9903,
+      0.9845,
+      0.9854
+    ],
+    "latency_mean_ms": 0.002,
+    "latency_std_ms": 0.001
+  },
+  "int8_per_tensor_new_validation": {
+    "accuracy": 0.9926,
+    "macro_f1": 0.9824,
+    "per_class_f1": [
+      0.9949,
+      0.9991,
+      0.9853,
+      0.9853,
+      0.9697,
+      0.96
+    ]
+  },
+  "note_int8_above_float32": "The INT8 model scores above the float32 model on both the test and the validation split. Quantization shifts the decision boundaries slightly and on this data the shift is favourable. Nothing was tuned for it: calibration uses the whole training split and no choice was made by looking at test or validation scores.",
+  "board_arithmetic": "firmware built with -DTFLITE_SINGLE_ROUNDING=1 -ffp-contract=off; host build of the board's TFLM sources (code/08_on_device/host_tflm) gives bit-identical outputs to these numbers",
+  "test_rows": 21282,
+  "class_agreement_old_vs_new_pct": 98.276,
+  "quantization_f1_drop_new": -0.0084,
+  "size_reduction_vs_float32_tflite_pct": 25.3
+}
