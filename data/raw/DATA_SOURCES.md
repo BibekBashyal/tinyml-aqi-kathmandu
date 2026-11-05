@@ -42,7 +42,6 @@ Raw data files are NOT committed to this repository. Follow the instructions bel
   - Site C — Bus Park residential area
 - **Collection period:** October 2026
 - **Save as:** `data/field/device1_buspark_core_oct2026.csv`, `device2_buspark_nearby_oct2026.csv`, `device3_buspark_residential_oct2026.csv`
-- **Site details:** see `docs/deployment_log.md`
 
 ---
 

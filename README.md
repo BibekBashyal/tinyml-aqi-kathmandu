@@ -51,8 +51,7 @@ tinyml-aqi-kathmandu/
 │   ├── data_logger/    # Stage 1: sensors, RTC timestamp, SD logging, LCD (PlatformIO)
 │   └── aqi_classifier/ # Stage 2: humidity correction, scaling, INT8 TFLite Micro inference, benchmark mode
 ├── models/             # scaler_params.json, training history (weights not committed)
-├── results/            # Metrics CSVs and figures
-└── docs/               # Lab notebook, literature tracker, deployment log, AQI breakpoints
+└── results/            # Metrics CSVs and figures
 ```
 
 ---

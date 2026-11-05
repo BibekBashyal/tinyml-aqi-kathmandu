@@ -49,3 +49,6 @@ results/figures/*.pdf
 
 # host TFLM harness build output
 code/08_on_device/host_tflm/build/
+
+# working notes kept locally
+docs/

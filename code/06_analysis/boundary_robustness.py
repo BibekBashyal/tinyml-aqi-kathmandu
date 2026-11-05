@@ -77,7 +77,7 @@ FEATURES     = ["PM2.5", "PM10", "temperature", "humidity"]
 TARGET       = "aqi_class"
 RANDOM_STATE = 42
 
-BREAKPOINTS  = [12.0, 35.4, 55.4, 150.4, 250.4]   # docs/aqi_breakpoints.md
+BREAKPOINTS  = [12.0, 35.4, 55.4, 150.4, 250.4]   # Nepal DoE PM2.5 class boundaries
 MARGIN       = 2.0                                 # headline margin, µg/m3
 MARGINS      = [1.0, 2.0, 5.0, 10.0]               # sweep
 NOISE_LEVELS = [0.05, 0.10, 0.15, 0.20, 0.30]      # matches Method C exactly
